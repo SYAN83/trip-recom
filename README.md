@@ -11,7 +11,8 @@ This project uses historical Uber Movement data to recommend trips in Seattle ar
 
 ## Getting Started:
 
-Depending on what's available in your computer, you may choose one of the following two ways to run the app.
+Depending on what's available in your computer, you may choose one of the following two ways to run the app. Once the app is up, open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
 
 ### npm
 
@@ -37,11 +38,17 @@ Depending on what's available in your computer, you may choose one of the follow
     - (Optional) If you want to run your services in the background, you can pass the `-d` flag (for “detached” mode) to `docker-compose up` and use `docker-compose ps` to see what is currently running:
     ```
     $ docker-compose up -d
+    Creating network "trip-recom_backend" with the default driver
+    Creating client ... done
+    Creating server ... done
     $ docker-compose ps
+         Name               Command               State           Ports         
+    ------------------------------------------------------------------------
+    client   docker-entrypoint.sh npm start   Up      0.0.0.0:3000->3000/tcp
+    server   python3 -m flask run --hos ...   Up      0.0.0.0:5000->5000/tcp
     $ docker-compose stop
     ```
   - Stop the App and remove the containers:
     - You can bring everything down, removing the containers entirely, with the `docker-compose down` command.
    
 
-Once the app is started, open [http://localhost:3000](http://localhost:3000) to view it in the browser.
