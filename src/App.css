@@ -28,11 +28,31 @@
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.leaflet-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+#container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#nav {
+  position: absolute;
+  z-index: 1300;
+}
+
+#ctrl {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translate(-50%, -50%);
+  z-index: 1300;
+}
+
+#map {
+  position: absolute;
+  top: 0;
 }

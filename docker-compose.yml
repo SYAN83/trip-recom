@@ -1,0 +1,19 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  web:
+    image: trip-recom-web
+    container_name: client
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+  api:
+    image: trip-recom-api
+    container_name: server
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+networks:
+  backend:
+      
