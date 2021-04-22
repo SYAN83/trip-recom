@@ -79,11 +79,22 @@ export async function ASearchFastest(start, goal, timeOfDay) {
       return getRoute(path, timeOfDay)
     } else {
       if (!speeds.has(current)) {
+        speeds.set(current, new Map());
         const nodePairs = Object.keys(links[current]).map(neighbor => [current, neighbor])
-        speeds.set(current, await fetchSpeeds(nodePairs, timeOfDay));
+        Object.keys(links[current]).forEach(fromNode => {
+          if (!speeds.has(fromNode)) {
+            speeds.set(fromNode, new Map());
+            nodePairs.push(...Object.keys(links[fromNode]).map(toNode => [fromNode, toNode]))
+          }
+        });
+        const fetchedSpeeds = await fetchSpeeds(nodePairs, timeOfDay);
+        nodePairs.forEach(([fromNode, toNode], idx) => {
+          speeds.get(fromNode).set(toNode, fetchedSpeeds[idx])
+        });
+        // speeds.set(current, await fetchSpeeds(nodePairs, timeOfDay));
       }
-      Object.keys(links[current]).forEach((neighbor, index) => {
-        const speed = speeds.get(current)[index];
+      Object.keys(links[current]).forEach(neighbor => {
+        const speed = speeds.get(current).get(neighbor);
         const factor = 1 + (1 - Math.min(1, speed / SPEED_UB)) * 1; 
         const tentative_gScore = gScore.get(current) + links[current][neighbor].distance * factor;
         if (tentative_gScore < (gScore.get(neighbor) || Infinity)) {
