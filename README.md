@@ -13,7 +13,7 @@ This project uses historical Uber Movement data to recommend trips in Seattle ar
 
 Depending on what's available in your computer, you may choose one of the following two ways to run the app.
 
-1. npm
+### npm
 
   - Prerequisites: using `npm` requires Node.js to be installed on your machine
 
@@ -26,21 +26,22 @@ Depending on what's available in your computer, you may choose one of the follow
   - Stop the App:
     - Press `Ctrl`+`C` in both terminals will stop the client app and the server api.
 
-2. Docker Compose
+### Docker Compose
 
   - Prerequisites: you need to have docker and docker compose running on your machine.
     - [Install Docker Compose](https://docs.docker.com/compose/install/)
     - In `package.json`, replace `"proxy": "http://localhost:5000"` with `"proxy": "http://server:5000"`.
 
-  - Re-build and run the app with Compose:
+  - Run the app with Compose:
     - From your project directory, type `docker-compose up` to build the app with the updated Compose file, and run it.
-    - You can bring everything down, removing the containers entirely, with the `docker-compose down` command.
     - (Optional) If you want to run your services in the background, you can pass the `-d` flag (for “detached” mode) to `docker-compose up` and use `docker-compose ps` to see what is currently running:
     ```
     $ docker-compose up -d
     $ docker-compose ps
     $ docker-compose stop
     ```
+  - Stop the App and remove the containers:
+    - You can bring everything down, removing the containers entirely, with the `docker-compose down` command.
    
 
 Once the app is started, open [http://localhost:3000](http://localhost:3000) to view it in the browser.
