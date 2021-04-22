@@ -99,10 +99,6 @@ function NavPanel(props) {
     props.setSegments([]);
   }, [startNode, targetNode]);
 
-  React.useEffect(() => {
-    console.log(time);
-  }, [time]);
-
   return (
     <div>
       <div id="ctrl">

@@ -9,7 +9,7 @@ export function greatCircleDistance(...args) {
     let _lat = (lat1 - lat2) / 2;
     let _lng = (lng1 - lng2) / 2;
     let x = Math.pow(Math.sin(_lat), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(_lng), 2);
-    return 2 * Math.asin(Math.sqrt(x))
+    return 2 * Math.asin(Math.sqrt(x));
   };
 
   let coordinates = args.map(([lat, lng]) => [lat * TO_RAD, lng * TO_RAD]);

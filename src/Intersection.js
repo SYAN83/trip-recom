@@ -11,12 +11,12 @@ function Intersection(props) {
   const [streets2, setStreets2] = React.useState([]);
 
   React.useEffect(() => {
-    let nodeId = ''
-    let location = []
+    let nodeId = '';
+    let location = [];
     if ((street1 in intersections) && (street2 in intersections[street1])) {
-      nodeId = intersections[street1][street2]
-      location = [street1, street2]
-    } 
+      nodeId = intersections[street1][street2];
+      location = [street1, street2];
+    };
     props.setNode({
       id: nodeId,
       loc: location

@@ -5,7 +5,7 @@ import links from '../data/links-small.min.json';
 import nodes from '../data/nodes-small.min.json';
 
 const MAX_SEARCH = 100000;
-const SPEED_UB = 45.0  // speed 99%
+const SPEED_UB = 45.0;  // speed 99%
 
 async function getRoute(path, timeOfDay="") {
   if (path.length < 2) return {coordinates: [], distance: undefined, time: undefined}
@@ -28,7 +28,6 @@ async function getRoute(path, timeOfDay="") {
     distance: dist,
     time: time
   };
-  console.log(route);
   return route;
 };
 
@@ -44,8 +43,8 @@ export async function ASearchShortest(start, goal, timeOfDay) {
     const current = openSet.pop()[1];
     if (current === goal) {
       console.log('A* Search count (shortest):', counter);
-      let path = reconstructPath(cameFrom, start, goal)
-      return getRoute(path, timeOfDay)
+      let path = reconstructPath(cameFrom, start, goal);
+      return getRoute(path, timeOfDay);
     } else {
       Object.keys(links[current]).forEach(neighbor => {
         const tentative_gScore = gScore.get(current) + links[current][neighbor].distance;

@@ -35,7 +35,7 @@ function SetViewOnChange({ nodes }) {
     default:
       map.setView(center, zoom, { animate: true });
   }
-  return null
+  return null;
 }
 
 function App() {
