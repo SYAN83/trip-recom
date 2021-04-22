@@ -6,6 +6,7 @@ import nodes from '../data/nodes-small.min.json';
 
 const MAX_SEARCH = 100000;
 const SPEED_UB = 45.0;  // speed 99%
+const SPEEDS = new Map();
 
 async function getRoute(path, timeOfDay="") {
   if (path.length < 2) return {coordinates: [], distance: undefined, time: undefined}
@@ -31,7 +32,7 @@ async function getRoute(path, timeOfDay="") {
   return route;
 };
 
-export async function ASearchShortest(start, goal, timeOfDay) {
+export async function ASearchShortest(start, goal, timeOfDay, preFetchSpeeds=true) {
   let counter = 0;
   const cameFrom = new Map();
   const gScore = new Map();
@@ -44,6 +45,10 @@ export async function ASearchShortest(start, goal, timeOfDay) {
     if (current === goal) {
       console.log('A* Search count (shortest):', counter);
       let path = reconstructPath(cameFrom, start, goal);
+      if (preFetchSpeeds) {
+        // prefetch speeds of visited nodes to speed up ASearchFastest
+        SPEEDS.set(timeOfDay, await batchFetchSpeeds(Array.from(cameFrom.values()), timeOfDay))
+      };
       return getRoute(path, timeOfDay);
     } else {
       Object.keys(links[current]).forEach(neighbor => {
@@ -66,7 +71,7 @@ export async function ASearchFastest(start, goal, timeOfDay) {
   const cameFrom = new Map();
   const gScore = new Map();
   const openSet = new Heap();
-  const speeds = new Map();
+  const speeds = SPEEDS.get(timeOfDay) || new Map();
 
   gScore.set(start, 0);
   openSet.push([heuristic(start, goal), start]);
@@ -125,4 +130,19 @@ function reconstructPath(cameFrom, start, goal) {
     path.unshift(current);
   }
   return path;
+};
+
+async function batchFetchSpeeds(fromNodes, timeOfDay) {
+  console.log("fetch speeds in batch:", fromNodes.length);
+  const nodePairs = new Array();
+  const speeds = new Map();
+  fromNodes.forEach(fromNode => {
+    speeds.set(fromNode, new Map());
+    nodePairs.push(...Object.keys(links[fromNode]).map(toNode => [fromNode, toNode]));
+  });
+  const fetchedSpeeds = await fetchSpeeds(nodePairs, timeOfDay);
+  nodePairs.forEach(([fromNode, toNode], idx) => {
+    speeds.get(fromNode).set(toNode, fetchedSpeeds[idx]);
+  });
+  return speeds;
 };
