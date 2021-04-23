@@ -44,6 +44,11 @@
   z-index: 1300;
 }
 
+#chart {
+  position: absolute;
+  z-index: 1300;
+}
+
 #ctrl {
   position: absolute;
   left: 50%;

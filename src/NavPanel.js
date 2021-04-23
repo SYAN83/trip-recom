@@ -176,6 +176,9 @@ function NavPanel(props) {
           </div>
         </SwipeableDrawer>
       </div>
+      <div id="charts">
+        <Paper elevation={3} />
+      </div>
     </div>
   );
 };

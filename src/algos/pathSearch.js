@@ -47,7 +47,8 @@ export async function ASearchShortest(start, goal, timeOfDay, preFetchSpeeds=tru
       let path = reconstructPath(cameFrom, start, goal);
       if (preFetchSpeeds) {
         // prefetch speeds of visited nodes to speed up ASearchFastest
-        SPEEDS.set(timeOfDay, await batchFetchSpeeds(Array.from(cameFrom.values()), timeOfDay))
+        const fromNodes = new Set(cameFrom.values());
+        SPEEDS.set(timeOfDay, await batchFetchSpeeds(Array.from(fromNodes), timeOfDay))
       };
       return getRoute(path, timeOfDay);
     } else {
@@ -83,19 +84,12 @@ export async function ASearchFastest(start, goal, timeOfDay) {
       return getRoute(path, timeOfDay)
     } else {
       if (!speeds.has(current)) {
-        speeds.set(current, new Map());
-        const nodePairs = Object.keys(links[current]).map(neighbor => [current, neighbor])
-        Object.keys(links[current]).forEach(fromNode => {
-          if (!speeds.has(fromNode)) {
-            speeds.set(fromNode, new Map());
-            nodePairs.push(...Object.keys(links[fromNode]).map(toNode => [fromNode, toNode]))
-          }
-        });
-        const fetchedSpeeds = await fetchSpeeds(nodePairs, timeOfDay);
-        nodePairs.forEach(([fromNode, toNode], idx) => {
-          speeds.get(fromNode).set(toNode, fetchedSpeeds[idx])
-        });
-        // speeds.set(current, await fetchSpeeds(nodePairs, timeOfDay));
+        const fromNodes = setFromNodes(current, 7);
+        fromNodes.forEach(node => {
+          if (speeds.has(node)) fromNodes.delete(node);
+        })
+        const fetchedSpeeds = await batchFetchSpeeds(Array.from(fromNodes), timeOfDay)
+        fetchedSpeeds.forEach((value, key) => speeds.set(key, value))
       }
       Object.keys(links[current]).forEach(neighbor => {
         const speed = speeds.get(current).get(neighbor);
@@ -146,3 +140,13 @@ async function batchFetchSpeeds(fromNodes, timeOfDay) {
   });
   return speeds;
 };
+
+function setFromNodes(fromNode, level=2) {
+  const fromNodes = new Set().add(fromNode);
+  if (level > 0) {
+    Object.keys(links[fromNode]).forEach(toNode => {
+      setFromNodes(toNode, level=level-1).forEach(node => fromNodes.add(node))
+    });
+  }
+  return fromNodes
+}
