@@ -1,6 +1,7 @@
 import Heap from 'heap-js';
 import { fetchSpeeds } from "../apiClient";
 import { greatCircleDistance } from './utils';
+import { TIME_OF_DAY } from '../constants';
 import links from '../data/links-small.min.json';
 import nodes from '../data/nodes-small.min.json';
 
@@ -8,26 +9,38 @@ const MAX_SEARCH = 100000;
 const SPEED_UB = 45.0;  // speed 99%
 const SPEEDS = new Map();
 
-async function getRoute(path, timeOfDay="") {
+async function getRoute(path, timeOfDay) {
   if (path.length < 2) return {coordinates: [], distance: undefined, time: undefined}
   const nodePairs = path.slice(1).map((val, idx) => [path[idx], val])
-  const speeds = await fetchSpeeds(nodePairs, timeOfDay)
+  const speedsOfDay = [];
+
+  for (const time of TIME_OF_DAY ) {
+    const fetchedSpeeds = await fetchSpeeds(nodePairs, time.key);
+    speedsOfDay.push([time.key, fetchedSpeeds]);
+  };
+  
   let coord = [nodes[path[0]]];
   let dist = 0;
-  let time = 0;
+  let times = new Map(TIME_OF_DAY.map(time => [time.key, 0]));
+  console.log('times init:', times)
   for (let i = 0; i < path.length - 1; i++) {
     let segmentDist = links[path[i]][path[i+1]].distance
     dist += segmentDist;
-    time += segmentDist / speeds[i];
+    speedsOfDay.forEach(([time, speeds]) => {
+      console.log('speedsOfDay foreach', time, segmentDist, speeds[i])
+      times.set(time, times.get(time) + segmentDist / speeds[i])
+    });
     if ('coordinates' in links[path[i]][path[i+1]]) {
       coord.push(...links[path[i]][path[i+1]].coordinates)
     }
     coord.push(nodes[path[i+1]])
   };
+  console.log('times final:', times)
   const route = {
     coordinates: coord,
     distance: dist,
-    time: time
+    time: times.get(timeOfDay),
+    timesOfDay: times
   };
   return route;
 };
@@ -127,8 +140,8 @@ function reconstructPath(cameFrom, start, goal) {
 };
 
 async function batchFetchSpeeds(fromNodes, timeOfDay) {
-  console.log("fetch speeds in batch:", fromNodes.length);
-  const nodePairs = new Array();
+  // console.log("fetch speeds in batch:", fromNodes.length);
+  const nodePairs = [];
   const speeds = new Map();
   fromNodes.forEach(fromNode => {
     speeds.set(fromNode, new Map());
@@ -147,6 +160,6 @@ function setFromNodes(fromNode, level=2) {
     Object.keys(links[fromNode]).forEach(toNode => {
       setFromNodes(toNode, level=level-1).forEach(node => fromNodes.add(node))
     });
-  }
+  };
   return fromNodes
-}
+};

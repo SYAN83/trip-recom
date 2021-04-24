@@ -10,15 +10,16 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import StepContent from '@material-ui/core/StepContent';
-import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import { ASearchShortest, ASearchFastest } from './algos/pathSearch';
+import { TIME_OF_DAY } from './constants';
 import Intersection from './Intersection';
+import Barchart from './BarChart';
 import nodes from './data/nodes-small.min.json';
 
 const useStyles = makeStyles((theme) => ({
   list: {
-    width: 320,
+    width: 360,
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
     marginTop: theme.spacing(2),
@@ -31,6 +32,10 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
+  summaryDiv: {
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+  }
 }));
 
 function formatTime(time) {
@@ -39,14 +44,6 @@ function formatTime(time) {
   const timeStr = (hour > 0 ? hour + " hr " : "") + minute + " min"
   return timeStr
 };
-
-const timeOfDay = [
-  { label: "AM Peak (7AM - 10AM)", key: "am_peak" },
-  { label: "Midday (10AM - 4PM)", key: "midday" },
-  { label: "PM Peak (4PM - 7PM)", key: "pm_peak" },
-  { label: "Evening (7PM - 12AM)", key: "evening" },
-  { label: "Early Morning (12AM - 7AM)", key: "early_morning" },
-]
 
 function NavPanel(props) {
   const classes = useStyles();
@@ -75,12 +72,8 @@ function NavPanel(props) {
     setRoutes({});
     setActiveStep(0);
   }
-  const handleSearch = (async () => {
-    handleNext();
-    handleRefresh();
-  });
 
-  const handleRefresh = (async () => {
+  const handleSearch = (async () => {
     setRoutes({});
     setLoading(true)
     console.log("search nodes:", startNode, targetNode);
@@ -88,13 +81,20 @@ function NavPanel(props) {
     let routeS = await ASearchShortest(startNode.id, targetNode.id, time);
     let routeF = await ASearchFastest(startNode.id, targetNode.id, time);
     setLoading(false)
-    setRoutes({ Fastest: routeF, Shortest: routeS });
-    props.setSegments([routeS.coordinates, routeF.coordinates])
+    setRoutes({ Shortest: routeS, Fastest: routeF });
+    props.setSegments([
+      {positions: routeS.coordinates, tooltip: "Shortest Route"}, 
+      {positions: routeF.coordinates, tooltip: "Fastest Route"}, 
+    ]);
   });
 
   React.useEffect(() => {
-    props.setNodes([startNode, targetNode].filter(node => node.id).map(node => {
-      return { latlng: nodes[node.id], ...node };
+    if (activeStep === 2 && time !== "") handleSearch();
+  }, [time])
+
+  React.useEffect(() => {
+    props.setNodes([startNode, targetNode].filter(node => node.id).map((node, idx) => {
+      return { latlng: nodes[node.id], type: ['From: ', 'To: '][idx], ...node };
     }));
     props.setSegments([]);
   }, [startNode, targetNode]);
@@ -110,29 +110,19 @@ function NavPanel(props) {
       <div id="nav">
         <SwipeableDrawer open={state} anchor={anchor} variant="persistent">
           <div className={classes.list}>
-            <br />
-            <Autocomplete
-              id="time-of-day"
-              options={timeOfDay}
-              getOptionLabel={(option) => option.label}
-              onChange={(event, newValue) => {
-                newValue === null ? setTime("") : setTime(newValue.key)
-              }}
-              renderInput={(params) => <TextField {...params} label="Time of Day" variant="outlined" />}
-            />
+            <strong>Trip Recommender</strong>
             <Stepper activeStep={activeStep} orientation="vertical">
               <Step key='start'>
                 <StepLabel>
                   <div>
-                    <p align="left">From :</p>
-                    <p>{activeStep > 0 && startNode.loc.join(' & ')}</p>
+                    <p align="left">From: {activeStep > 0 && startNode.loc.join(' & ')}</p>
                   </div>
                 </StepLabel>
                 <StepContent>
                   <Intersection setNode={setStartNode} />
                   <br />
                   <div className={classes.actionsContainer}>
-                    <Button className={classes.button} disabled={activeStep === 0} onClick={handleBack}>Back</Button>
+                    {/* <Button className={classes.button} disabled={activeStep === 0} onClick={handleBack}>Back</Button> */}
                     <Button variant="contained" color={color} disabled={!startNode.id} onClick={handleNext} className={classes.button} >Next</Button>
                   </div>
                 </StepContent>
@@ -140,8 +130,7 @@ function NavPanel(props) {
               <Step key='target'>
                 <StepLabel>
                   <div>
-                    <p align="left">To :</p>
-                    <p>{activeStep > 1 && targetNode.loc.join(' & ')}</p>
+                    <p align="left">To: {activeStep > 1 && targetNode.loc.join(' & ')}</p>
                   </div>
                 </StepLabel>
                 <StepContent>
@@ -149,35 +138,45 @@ function NavPanel(props) {
                   <br />
                   <div className={classes.actionsContainer}>
                     <Button className={classes.button} disabled={activeStep === 0} onClick={handleBack}>Back</Button>
-                    <Button variant="contained" color={color} disabled={!targetNode.id} onClick={handleSearch} className={classes.button} >Search</Button>
+                    <Button variant="contained" color={color} disabled={!targetNode.id} onClick={handleNext} className={classes.button} >Next</Button>
                   </div>
                 </StepContent>
               </Step>
               <Step key='summary'>
                 <StepLabel>
-                  <p align="left">Route Summary:</p>
+                  <p align="left">Dearture Time:</p>
                 </StepLabel>
                 <StepContent>
-                  {loading ? <CircularProgress /> : null}
-                  {Object.entries(routes).map(([key, route]) =>
-                    <div>
-                      <p align="left"><em>{key} Route:</em></p>
-                      {route && <p align="left">Dist.: {route.distance && route.distance.toFixed(2) + " mi"} | Est. Time: {route.time && formatTime(route.time)}</p>}
-                    </div>)}
+                  <Autocomplete
+                    id="time-of-day"
+                    options={TIME_OF_DAY}
+                    getOptionLabel={(option) => option.label}
+                    onChange={(event, newValue) => {
+                      newValue === null ? setTime("") : setTime(newValue.key)
+                    }}
+                    renderInput={(params) => <TextField {...params} label="Time of Day" variant="outlined" />}
+                  />
                 </StepContent>
               </Step>
             </Stepper>
-            {activeStep === 2 && !loading && (
-              <Paper square elevation={0} className={classes.resetContainer}>
-                <Button onClick={handleReset} className={classes.button}>Reset</Button>
-                <Button variant="contained" color={color} onClick={handleRefresh} className={classes.button}>Search Again</Button>
-              </Paper>
-            )}
           </div>
+          <div className={classes.summaryDiv}>
+            <hr/>
+            {loading ? <CircularProgress /> : Object.entries(routes).map(([key, route]) =>
+              <div>
+                <p align="left"><em>{key} Route:</em></p>
+                {route && <p align="left">- Dist.: {route.distance && route.distance.toFixed(2) + " mi"} | Est. Time: {route.time && formatTime(route.time)}</p>}
+              </div>)
+            }
+          </div>
+          {Object.keys(routes).length === 2 && "Average travel times by period (min)"}
+          {Object.keys(routes).length === 2 && <Barchart data={routes}/>}
+          {activeStep === 2 && !loading && (
+            <div>
+              <Button onClick={handleReset} className={classes.button}>Reset</Button>
+            </div>
+          )}          
         </SwipeableDrawer>
-      </div>
-      <div id="charts">
-        <Paper elevation={3} />
       </div>
     </div>
   );
