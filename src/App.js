@@ -24,12 +24,7 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const center = [47.608013, -122.335167];
-const zoom = 13;
-
-const crimeFiltered = crimeIndex.filter( data => data.Index > 99).map( data  => ({
-  Color: HEATS[Math.min(HEATS.length, Math.floor(data.Index / 100))-1], 
-  LatLng: data.LatLng, Index: Math.round(data.Index)
-}));
+const zoom = 14;
 
 function SetViewOnChange({ nodes }) {
   const map = useMap();
@@ -49,6 +44,12 @@ function SetViewOnChange({ nodes }) {
 function App() {
   const [segments, setSegments] = React.useState([]);
   const [nodes, setNodes] = React.useState([]);
+  const crimeFiltered = crimeIndex.filter(data => data.Index > 100).map( data  => ({
+    Color: HEATS[Math.min(HEATS.length, Math.floor(data.Index / 100))-1], 
+    LatLng: data.LatLng, 
+    Index: Math.round(data.Index)
+  }));
+  crimeFiltered.sort( (a, b) => (a.Index > b.Index) ? 1 : -1 );
 
   return (
     <div className="App" id="container">
@@ -59,11 +60,13 @@ function App() {
             <LayersControl.Overlay checked name="Navigation">
             <LayerGroup>
               {segments.map((segment, index) =>
-                <Polyline weight={6} opacity={0.75} positions={segment} color={COLORS[index]} />
+                <Polyline weight={6} opacity={0.75} positions={segment.positions} color={COLORS[index]}>
+                  <Tooltip sticky>{segment.tooltip}</Tooltip>
+                </Polyline>
               )}
               {nodes.map(node =>
                 <Marker position={node.latlng} >
-                  <Popup>{node.loc.join(' & ')}</Popup>
+                  <Popup>{node.type + node.loc.join(' & ')}</Popup>
                 </Marker>
               )}
             </LayerGroup>
@@ -82,13 +85,13 @@ function App() {
                 })}
               </MarkerClusterGroup>;
             </LayersControl.Overlay>
-            <LayersControl.Overlay checked name="Crime Index">
+            <LayersControl.Overlay name="Crime Index">
               <LayerGroup>
                 {crimeFiltered.map( data => {
                   return (
                     <CircleMarker center={data.LatLng} radius={10} 
-                      pathOptions={{ color: data.Color, fillOpacity: 0.8, stroke: false}}>
-                      <Tooltip direction="right" offset={[0, 0]} opacity={1}>{data.Index}</Tooltip>
+                      pathOptions={{ color: data.Color, fillOpacity: 0.75, stroke: false}}>
+                      <Tooltip direction="right" offset={[0, 0]} opacity={1}>Crime Index: {data.Index}</Tooltip>
                     </CircleMarker>
                     );
                 })}

@@ -144,7 +144,7 @@ function NavPanel(props) {
               </Step>
               <Step key='summary'>
                 <StepLabel>
-                  <p align="left">Dearture Time:</p>
+                  <p align="left">Departure Time:</p>
                 </StepLabel>
                 <StepContent>
                   <Autocomplete

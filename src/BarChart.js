@@ -20,7 +20,7 @@ export default function Barchart(props) {
     } else {
       setData([])
     }
-  }, [props])
+  }, [props]);
   
   return (
     <ResponsiveContainer width="100%" height={200}>
