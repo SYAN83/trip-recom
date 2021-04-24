@@ -22,7 +22,8 @@ Depending on what's available in your computer, you may choose one of the follow
     - Run `install.sh` to create a Python virtual envirement for the REST API.
 
   - Run the App with npm:
-    - From your project directory, type `npm start` to start the app in development mode, open another terminal and type `npm run start-api` to start the server API.
+    - From your project directory, type `npm install` to install the dependencies and then type `npm start`, the app will then start in development mode.
+    - Open another terminal from the project directory and type `npm run start-api` to start the server API.
 
   - Stop the App:
     - Press `Ctrl`+`C` in both terminals will stop the client app and the server api.
