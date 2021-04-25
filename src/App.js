@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap, LayersControl, LayerGroup, Tooltip, CircleMarker,  } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap, LayersControl, LayerGroup, Tooltip, CircleMarker, Pane } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -44,8 +44,8 @@ function SetViewOnChange({ nodes }) {
 function App() {
   const [segments, setSegments] = React.useState([]);
   const [nodes, setNodes] = React.useState([]);
-  const crimeFiltered = crimeIndex.filter(data => data.Index > 100).map( data  => ({
-    Color: HEATS[Math.min(HEATS.length, Math.floor(data.Index / 100))-1], 
+  const crimeFiltered = crimeIndex.filter(data => data.Index > 50).map( data  => ({
+    Color: HEATS[Math.min(HEATS.length, Math.floor(data.Index / 50))-1], 
     LatLng: data.LatLng, 
     Index: Math.round(data.Index)
   }));
@@ -59,8 +59,9 @@ function App() {
           <LayersControl position="topleft">
             <LayersControl.Overlay checked name="Navigation">
             <LayerGroup>
+              <Pane name="yellow-rectangle" style={{ zIndex: 500 }}>
               {segments.map((segment, index) =>
-                <Polyline weight={6} opacity={0.75} positions={segment.positions} color={COLORS[index]}>
+                <Polyline weight={6} opacity={0.75} positions={segment.positions} color={COLORS[index]} zIndex={100}>
                   <Tooltip sticky>{segment.tooltip}</Tooltip>
                 </Polyline>
               )}
@@ -69,6 +70,7 @@ function App() {
                   <Popup>{node.type + node.loc.join(' & ')}</Popup>
                 </Marker>
               )}
+              </Pane>
             </LayerGroup>
             </LayersControl.Overlay>
             <LayersControl.Overlay name="Collisions">

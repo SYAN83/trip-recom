@@ -22,12 +22,10 @@ async function getRoute(path, timeOfDay) {
   let coord = [nodes[path[0]]];
   let dist = 0;
   let times = new Map(TIME_OF_DAY.map(time => [time.key, 0]));
-  console.log('times init:', times)
   for (let i = 0; i < path.length - 1; i++) {
     let segmentDist = links[path[i]][path[i+1]].distance
     dist += segmentDist;
     speedsOfDay.forEach(([time, speeds]) => {
-      console.log('speedsOfDay foreach', time, segmentDist, speeds[i])
       times.set(time, times.get(time) + segmentDist / speeds[i])
     });
     if ('coordinates' in links[path[i]][path[i+1]]) {
@@ -35,7 +33,6 @@ async function getRoute(path, timeOfDay) {
     }
     coord.push(nodes[path[i+1]])
   };
-  console.log('times final:', times)
   const route = {
     coordinates: coord,
     distance: dist,
