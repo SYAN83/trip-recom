@@ -2,7 +2,7 @@
 
 # TRIP RECOMMENDATION
 
-This project uses historical Uber Movement data to recommend trips in Seattle area.
+This project uses historical Uber Movement data to recommend trip routes in Seattle area.
 
 ## Project Structure:
 
